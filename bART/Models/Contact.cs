@@ -16,6 +16,6 @@ namespace bART.Models
         [MaxLength(50)]
         public string Email { get; set; }
 
-        public Account Account { get; set; }
+        public Account? Account { get; set; }
     }
 }

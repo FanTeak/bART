@@ -23,11 +23,13 @@ namespace bART.Models
         private void AccountConfigure(EntityTypeBuilder<Account> builder)
         {
             builder.HasAlternateKey(a => a.Name);
+            builder.HasOne(a => a.Incident).WithMany(i => i.Accounts).OnDelete(DeleteBehavior.SetNull);
         }
 
         private void ContactConfigure(EntityTypeBuilder<Contact> builder)
         {
             builder.HasAlternateKey(c => c.Email);
+            builder.HasOne(c=>c.Account).WithMany(a=>a.Contacts).OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

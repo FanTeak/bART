@@ -1,3 +1,7 @@
+using bART.LogicControllers;
+using bART.Models;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +10,13 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+string connection = builder.Configuration.GetSection("ConnectionStrings:DefaultConnection").Value;
+builder.Services.AddDbContext<bARTDbContext>(options => options.UseSqlServer(connection));
+
+builder.Services.AddTransient<ContactLogic>();
+builder.Services.AddTransient<AccountLogic>();
+builder.Services.AddTransient<IncidentLogic>();
 
 var app = builder.Build();
 
