@@ -12,6 +12,6 @@ namespace bART.Models
 
         public Incident? Incident { get; set; }
         
-        public List<Contact> Contacts { get; set; }
+        public IEnumerable<Contact> Contacts { get; set; }
     }
 }

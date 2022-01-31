@@ -12,6 +12,6 @@ namespace bART.Models
         [MaxLength(200)]
         public string Description { get; set; }
         
-        public List<Account> Accounts { get; set; }
+        public IEnumerable<Account> Accounts { get; set; }
     }
 }

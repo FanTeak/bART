@@ -127,6 +127,6 @@ namespace bART.Controllers
             return _context.Accounts.Any(e => e.Id == id);
         }
 
-        private bool ContactsNotExists(Account account) => account.Contacts.Count < 1;
+        private bool ContactsNotExists(Account account) => account.Contacts.Count() < 1;
     }
 }
