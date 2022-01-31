@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using bART.Models;
+using bART.Repositories;
 
 namespace bART.Controllers
 {
@@ -14,25 +15,26 @@ namespace bART.Controllers
     [ApiController]
     public class AccountsController : ControllerBase
     {
-        private readonly bARTDbContext _context;
+        private readonly AccountRepository repository;
 
-        public AccountsController(bARTDbContext context)
+        public AccountsController(AccountRepository repository)
         {
-            _context = context;
+            this.repository = repository;
         }
 
         // GET: api/Accounts
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
         {
-            return await _context.Accounts.ToListAsync();
+            var account = await repository.GetAccountsAsync();
+            return account.ToList();
         }
 
         // GET: api/Accounts/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Account>> GetAccount(int id)
         {
-            var account = await _context.Accounts.FindAsync(id);
+            var account = await repository.GetAccountAsync(id);
 
             if (account == null)
             {
@@ -52,28 +54,19 @@ namespace bART.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(account).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await repository.PutAccountAsync(id, account);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AccountExists(id))
+                if (!repository.AccountExists(account.Id))
                 {
                     return NotFound();
                 }
                 else
                 {
-                    if (ContactsNotExists(account))
-                    {
-                        return BadRequest();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
             }
 
@@ -85,24 +78,15 @@ namespace bART.Controllers
         [HttpPost]
         public async Task<ActionResult<Account>> PostAccount(Account account)
         {
-            _context.Accounts.Add(account);
             try
             {
-                await _context.SaveChangesAsync();
+                await repository.PostAccountAsync(account);
             }
             catch (DbUpdateConcurrencyException)
             {
-
-                if (ContactsNotExists(account))
-                {
-                    return BadRequest();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest(ModelState);
             }
-            
+
             return CreatedAtAction("GetAccount", new { id = account.Id }, account);
         }
 
@@ -110,23 +94,20 @@ namespace bART.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(int id)
         {
-            var account = await _context.Accounts.FindAsync(id);
-            if (account == null)
+            try
+            {
+                await repository.DeleteAccountAsync(id);
+            }
+            catch (NullReferenceException)
             {
                 return NotFound();
             }
-
-            _context.Accounts.Remove(account);
-            await _context.SaveChangesAsync();
+            catch (Exception)
+            {
+                throw;
+            }
 
             return NoContent();
         }
-
-        private bool AccountExists(int id)
-        {
-            return _context.Accounts.Any(e => e.Id == id);
-        }
-
-        private bool ContactsNotExists(Account account) => account.Contacts.Count() < 1;
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using bART.Models;
+using bART.Repositories;
 
 namespace bART.Controllers
 {
@@ -15,25 +16,26 @@ namespace bART.Controllers
     [ApiController]
     public class ContactsController : ControllerBase
     {
-        private readonly bARTDbContext _context;
+        private readonly ContactRepository repository;
 
-        public ContactsController(bARTDbContext context)
+        public ContactsController(ContactRepository repository)
         {
-            _context = context;
+            this.repository = repository;
         }
 
         // GET: api/Contacts
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Contact>>> GetContacts()
         {
-            return await _context.Contacts.Include(c=>c.Account).ToListAsync();
+            var contacts = await repository.GetContactsAsync();
+            return contacts.ToList();
         }
 
         // GET: api/Contacts/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Contact>> GetContact(int id)
         {
-            var contact = await _context.Contacts.Include(c=>c.Account).FirstOrDefaultAsync(c=>c.Id == id);
+            var contact = await repository.GetContactAsync(id);
 
             if (contact == null)
             {
@@ -53,15 +55,13 @@ namespace bART.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(contact).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await repository.PutContactAsync(id, contact);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ContactExists(contact.Email))
+                if (!repository.ContactExists(contact.Email))
                 {
                     return NotFound();
                 }
@@ -79,10 +79,9 @@ namespace bART.Controllers
         [HttpPost]
         public async Task<ActionResult<Contact>> PostContact(Contact contact)
         {
-            _context.Contacts.Add(contact);
             try
             {
-                await _context.SaveChangesAsync();
+                await repository.PostContactAsync(contact);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -96,21 +95,20 @@ namespace bART.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteContact(int id)
         {
-            var contact = await _context.Contacts.FindAsync(id);
-            if (contact == null)
+            try
+            {
+                await repository.DeleteContactAsync(id);
+            }
+            catch (NullReferenceException)
             {
                 return NotFound();
             }
-
-            _context.Contacts.Remove(contact);
-            await _context.SaveChangesAsync();
+            catch (Exception)
+            {
+                throw;
+            }
 
             return NoContent();
-        }
-
-        private bool ContactExists(string email)
-        {
-            return _context.Contacts.Any(e => e.Email == email);
         }
     }
 }

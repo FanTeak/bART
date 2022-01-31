@@ -1,7 +1,7 @@
 ﻿using bART.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace bART.LogicControllers
+namespace bART.Repositories
 {
     public class AccountRepository
     {
@@ -14,27 +14,52 @@ namespace bART.LogicControllers
 
         public async Task<IEnumerable<Account>> GetAccountsAsync()
         {
-            return await _context.Accounts.ToListAsync();
+            return await _context.Accounts.Include(a => a.Incident).Include(a => a.Contacts).ToListAsync();
         }
 
-        public async Task<Account?> GetAccountAsync(string name)
+        public async Task<Account?> GetAccountAsync(int id)
         {
-            return await _context.Accounts.FirstOrDefaultAsync();
+            return await _context.Accounts.Include(a => a.Incident).Include(a => a.Contacts).SingleOrDefaultAsync(a=>a.Id == id);
         }
 
-        public async Task<bool> PutAccount(int id, Account account)
+        public async Task<int> PutAccountAsync(int id, Account account)
         {
-            return await _context.Accounts.AnyAsync();
+            _context.Entry(account).State = EntityState.Modified;
+
+            return await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> PostAccount(Account account)
+        public async Task<int> PostAccountAsync(Account account)
         {
-            return await _context.Accounts.AnyAsync();
+            _context.Accounts.Add(account);
+            return await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteAccount(int id)
+        public async Task<int> DeleteAccountAsync(int id)
         {
-            return await _context.Accounts.AnyAsync();
+            var account = await _context.Accounts.FindAsync(id);
+            if (account == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (CanDeleteAccount(account.Incident))
+            {
+                _context.Accounts.Remove(account);
+            }
+            return await _context.SaveChangesAsync();
         }
+
+        private bool CanDeleteAccount(Incident incident)
+        {
+            return incident.Accounts.Count() > 1 ? true : false;
+        }
+
+        public bool AccountExists(int id)
+        {
+            return _context.Accounts.Any(e => e.Id == id);
+        }
+
+        public bool ContactsNotExists(Account account) => account.Contacts.Count() < 1;
     }
 }

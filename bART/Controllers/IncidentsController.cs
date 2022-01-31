@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using bART.Models;
+using bART.Repositories;
 
 namespace bART.Controllers
 {
@@ -14,27 +15,26 @@ namespace bART.Controllers
     [ApiController]
     public class IncidentsController : ControllerBase
     {
-        private readonly bARTDbContext _context;
+        private readonly IncidentRepository repository;
 
-        public IncidentsController(bARTDbContext context)
+        public IncidentsController(IncidentRepository repository)
         {
-            _context = context;
+            this.repository = repository;
         }
 
         // GET: api/Incidents
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Incident>>> GetIncidents()
         {
-            return await _context.Incidents.Include(i => i.Accounts)
-                .ThenInclude(a => a.Contacts).ToListAsync();
+            var incidents = await repository.GetIncidentsAsync();
+            return incidents.ToList();
         }
 
         // GET: api/Incidents/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Incident>> GetIncident(string id)
         {
-            var incident = await _context.Incidents.Include(i => i.Accounts)
-                .ThenInclude(i => i.Contacts).FirstOrDefaultAsync(i=>i.Name.Equals(id));
+            var incident = await repository.GetIncidentAsync(id);
 
             if (incident == null)
             {
@@ -54,15 +54,13 @@ namespace bART.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(incident).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await repository.PutIncidentAsync(id, incident);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!IncidentExists(id))
+                if (!repository.IncidentExists(id))
                 {
                     return NotFound();
                 }
@@ -80,8 +78,14 @@ namespace bART.Controllers
         [HttpPost]
         public async Task<ActionResult<Incident>> PostIncident(Incident incident)
         {
-            _context.Incidents.Add(incident);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await repository.PostIncidentAsync(incident);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return BadRequest(ModelState);
+            }
 
             return CreatedAtAction("GetIncident", new { id = incident.Name }, incident);
         }
@@ -90,21 +94,20 @@ namespace bART.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteIncident(string id)
         {
-            var incident = await _context.Incidents.FindAsync(id);
-            if (incident == null)
+            try
+            {
+                await repository.DeleteIncidentAsync(id);
+            }
+            catch (NullReferenceException)
             {
                 return NotFound();
             }
-
-            _context.Incidents.Remove(incident);
-            await _context.SaveChangesAsync();
+            catch (Exception)
+            {
+                throw;
+            }
 
             return NoContent();
-        }
-
-        private bool IncidentExists(string id)
-        {
-            return _context.Incidents.Any(e => e.Name == id);
         }
     }
 }

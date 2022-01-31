@@ -1,7 +1,7 @@
 ﻿using bART.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace bART.LogicControllers
+namespace bART.Repositories
 {
     public class IncidentRepository
     {
@@ -21,22 +21,36 @@ namespace bART.LogicControllers
         public async Task<Incident?> GetIncidentAsync(string name)
         {
             return await _context.Incidents.Include(i => i.Accounts)
-                .ThenInclude(i => i.Contacts).FirstOrDefaultAsync(i => i.Name.Equals(name));
+                .ThenInclude(i => i.Contacts).SingleOrDefaultAsync(i => i.Name.Equals(name));
         }
 
-        public async Task<bool> PutIncident(string id, Incident incident)
+        public async Task<int> PutIncidentAsync(string id, Incident incident)
         {
-            return await _context.Incidents.AnyAsync();
-;        }
-
-        public async Task<bool> PostIncident(Incident incident)
-        {
-            return await _context.Incidents.AnyAsync();
+            _context.Entry(incident).State = EntityState.Modified;
+            return await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteIncident(string id)
+        public async Task<int> PostIncidentAsync(Incident incident)
         {
-            return await _context.Incidents.AnyAsync();
+            _context.Incidents.Add(incident);
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> DeleteIncidentAsync(string id)
+        {
+            var incident = await _context.Incidents.FindAsync(id);
+            if (incident == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            _context.Incidents.Remove(incident);
+            return await _context.SaveChangesAsync();
+        }
+
+        public bool IncidentExists(string id)
+        {
+            return _context.Incidents.Any(e => e.Name == id);
         }
     }
 }
