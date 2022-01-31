@@ -10,8 +10,8 @@ namespace bART.Models
         [MaxLength(30)]
         public string Name { get; set; }
 
-        public Incident Incident { get; set; }
+        public Incident? Incident { get; set; }
         
-        public List<Contact> Contacts { get; set; }
+        public IEnumerable<Contact> Contacts { get; set; }
     }
 }
