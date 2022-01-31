@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace bART.LogicControllers
 {
-    public class IncidentLogic
+    public class IncidentRepository
     {
         private readonly bARTDbContext _context;
 
-        public IncidentLogic(bARTDbContext context)
+        public IncidentRepository(bARTDbContext context)
         {
             _context = context;
         }

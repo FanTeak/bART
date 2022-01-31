@@ -14,9 +14,9 @@ builder.Services.AddSwaggerGen();
 string connection = builder.Configuration.GetSection("ConnectionStrings:DefaultConnection").Value;
 builder.Services.AddDbContext<bARTDbContext>(options => options.UseSqlServer(connection));
 
-builder.Services.AddTransient<ContactLogic>();
-builder.Services.AddTransient<AccountLogic>();
-builder.Services.AddTransient<IncidentLogic>();
+builder.Services.AddTransient<ContactRepository>();
+builder.Services.AddTransient<AccountRepository>();
+builder.Services.AddTransient<IncidentRepository>();
 
 var app = builder.Build();
 

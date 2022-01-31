@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace bART.LogicControllers
 {
-    public class AccountLogic
+    public class AccountRepository
     {
         private readonly bARTDbContext _context;
 
-        public AccountLogic(bARTDbContext context)
+        public AccountRepository(bARTDbContext context)
         {
             _context = context;
         }

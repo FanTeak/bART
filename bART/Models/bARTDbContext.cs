@@ -10,9 +10,9 @@ namespace bART.Models
             
         }
 
-        public DbSet<Incident> Incidents { get; set; }
-        public DbSet<Account> Accounts { get; set; }
-        public DbSet<Contact> Contacts { get; set; }
+        public virtual DbSet<Incident> Incidents { get; set; }
+        public virtual DbSet<Account> Accounts { get; set; }
+        public virtual DbSet<Contact> Contacts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

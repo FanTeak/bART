@@ -9,9 +9,33 @@ namespace bART.Tests
 {
     internal static class Mocks
     {
-        public static IEnumerable<Incident> GetMock()
+        public static IEnumerable<Incident> GetIncidentsMock()
         {
             return Merge();
+        }
+
+        public static IEnumerable<Account> GetAccountsMock()
+        {
+            var incidents = GetIncidentsMock();
+            var accounts = new List<Account>();
+
+            foreach (var incident in incidents)
+            {
+                accounts.AddRange(incident.Accounts);
+            }
+            return accounts;
+        }
+
+        public static IEnumerable<Contact> GetContactsMock()
+        {
+            var accounts = GetAccountsMock();
+            var contacts = new List<Contact>();
+
+            foreach (var account in accounts)
+            {
+                contacts.AddRange(account.Contacts);
+            }
+            return contacts;
         }
         private static IEnumerable<Incident> Merge()
         {
@@ -26,7 +50,7 @@ namespace bART.Tests
             {
                 account.Incident = incident;
                 account.Contacts = contacts.Skip(counter).Take(contactsPerAccount).ToList();
-                counter += counter;
+                counter += contactsPerAccount;
 
                 foreach (var contact in account.Contacts)
                 {
