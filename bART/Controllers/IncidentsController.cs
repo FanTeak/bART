@@ -58,7 +58,7 @@ namespace bART.Controllers
             {
                 await repository.PutIncidentAsync(id, incident);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
                 if (!repository.IncidentExists(id))
                 {
@@ -66,7 +66,7 @@ namespace bART.Controllers
                 }
                 else
                 {
-                    throw;
+                    return new BadRequestObjectResult(ex.Message);
                 }
             }
 
@@ -82,9 +82,9 @@ namespace bART.Controllers
             {
                 await repository.PostIncidentAsync(incident);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                return BadRequest(ModelState);
+                return new NotFoundObjectResult(ex.Message);
             }
 
             return CreatedAtAction("GetIncident", new { id = incident.Name }, incident);

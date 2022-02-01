@@ -105,7 +105,7 @@ namespace bART.Controllers
             }
             catch (Exception)
             {
-                throw;
+                return BadRequest();
             }
 
             return NoContent();
